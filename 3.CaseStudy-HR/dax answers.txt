@@ -1,0 +1,69 @@
+TotalEmployees = COUNT(dim_Employee[EmployeeID])
+
+
+ActiveEmployees = CALCULATE(
+    [TotalEmployees], dim_Employee[Attrition] = "No")
+
+InactiveEmployees = CALCULATE([TotalEmployees],dim_Employee[Attrition] = "Yes")
+
+InactiveEmployeesDate = CALCULATE([InactiveEmployees], USERELATIONSHIP(dim_Employee[HireDate], dim_Calendar[Date]))
+
+% Attrition Rate = DIVIDE([InactiveEmployees], [TotalEmployees])
+
+TotalEmployeesDate = 
+CALCULATE (
+    [TotalEmployees],
+    USERELATIONSHIP (dim_Employee[HireDate],dim_Calendar[Date] ))
+
+AverageSalary = AVERAGE(dim_Employee[Salary])
+
+LastReviewDate = 
+IF (
+    MAX (fact_PerformanceRating[ReviewDate] ) = BLANK (),
+    "No Review Yet",
+    MAX (fact_PerformanceRating[ReviewDate] )
+)
+
+NextReviewDate = 
+VAR reviewOrHire =
+    IF (
+        MAX ( fact_PerformanceRating[ReviewDate] ) = BLANK (),
+        MAX ( dim_Employee[HireDate] ),
+        MAX ( fact_PerformanceRating[ReviewDate] )
+    )
+RETURN
+    reviewOrHire + 365
+
+JobSatisfaction = MAX(fact_PerformanceRating[JobSatisfaction])
+
+EnvironmentSatisfaction = 
+CALCULATE (
+    MAX ( fact_PerformanceRating[EnvironmentSatisfaction]),
+    USERELATIONSHIP (fact_PerformanceRating[EnvironmentSatisfaction],dim_SatisfiedLevel[SatisfactionID] )
+)
+
+RelationshipSatisfaction = 
+CALCULATE (
+    MAX ( fact_PerformanceRating[RelationshipSatisfaction] ),
+    USERELATIONSHIP ( fact_PerformanceRating[RelationshipSatisfaction], dim_SatisfiedLevel[SatisfactionID] )
+)
+
+WorkLifeBalance = 
+CALCULATE (
+    MAX (fact_PerformanceRating[WorkLifeBalance] ),
+    USERELATIONSHIP (fact_PerformanceRating[WorkLifeBalance], dim_SatisfiedLevel[SatisfactionID])
+)
+
+SelfRating = 
+CALCULATE (
+    MAX (fact_PerformanceRating[SelfRating]),
+    USERELATIONSHIP (fact_PerformanceRating[SelfRating], dim_RatingLevel[RatingID])
+)
+
+ManagerRating = 
+CALCULATE (
+    MAX (fact_PerformanceRating[ManagerRating] ),
+    USERELATIONSHIP (fact_PerformanceRating[ManagerRating], dim_RatingLevel[RatingID])
+)
+
+% Attrition Rate Date = DIVIDE([InactiveEmployeesDate], [TotalEmployeesDate])
